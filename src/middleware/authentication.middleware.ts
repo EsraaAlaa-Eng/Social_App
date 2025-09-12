@@ -1,0 +1,58 @@
+import { NextFunction, Request, Response } from "express"
+import { BadRequestException, forbiddenException } from "../utils/response/error.response"
+import { RoleEnum } from "../DB/models/user.model";
+import { decodeToken, TokenEnum } from "../utils/security/token.security";
+
+
+export const authentication = (tokenType:TokenEnum=TokenEnum.access) => {
+    return async (req: Request, res: Response, next: NextFunction) => {
+
+        if (!req.headers.authorization) {
+            throw new BadRequestException("validation error",
+                {
+                    key: "headers",
+                    issues: [{ path: "authorization", message: "missing authorization" }]
+                });
+        }
+
+
+        const { decoded, user } = await decodeToken({
+            authorization: req.headers.authorization,
+            tokenType,
+        });
+
+        req.user = user;
+        req.decoded = decoded;
+        next();
+    };
+};
+
+
+
+export const authorization = (accessRoles:RoleEnum[]=[] ,tokenType:TokenEnum=TokenEnum.access) => {
+    return async (req: Request, res: Response, next: NextFunction) => {
+
+        if (!req.headers.authorization) {
+            throw new BadRequestException("validation error",
+                {
+                    key: "headers",
+                    issues: [{ path: "authorization", message: "missing authorization" }]
+                });
+        }
+
+
+        const { decoded, user } = await decodeToken({
+            authorization: req.headers.authorization,
+            tokenType
+        });
+
+        if(!accessRoles.includes(user.role)){
+            throw new forbiddenException("Not authorized account")
+        }
+
+        req.user = user;
+        req.decoded = decoded;
+        next();
+    };
+};
+ 

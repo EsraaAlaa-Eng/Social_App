@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { generalFields } from '../middleware/middleware.validation'
+import { generalFields } from '../../middleware/middleware.validation'
 
 
 export const login = {
@@ -19,7 +19,7 @@ export const signup = {
     body: login.body
     .extend({
 
-        fullName: generalFields.fullName,
+        username: generalFields.username,
         confirmPassword: generalFields.confirmPassword,
 
     }).superRefine((data, ctx) => {
@@ -32,7 +32,7 @@ export const signup = {
         }
 
 
-        if (data.fullName?.trim().split(/\s+/)?.length != 2) {
+        if (data.username?.trim().split(/\s+/)?.length != 2) {
             ctx.addIssue({
                 code: "custom",
                 path: ["fullName"],

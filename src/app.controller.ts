@@ -13,9 +13,10 @@ import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 
 //import module routing
-import authController from "./auth/auth.controller"
+import authController from "./modules/auth/auth.controller"
 import { globalErrorHandling } from './utils/response/error.response';
 import connectDB from './DB/connection/connection.db';
+import userController from './modules/user/user.controller';
 
 
 
@@ -28,12 +29,12 @@ const limiter = rateLimit({
 });
 
 //app-start-point
-const bootstrap = (): void => {
+const bootstrap = async (): Promise<void> => {
     const app: Express = express();
     const port: number | string = process.env.PORT || 5000;
 
     // Connect Database
-    connectDB();
+    await connectDB();
 
     app.use(express.json());
 
@@ -54,6 +55,7 @@ const bootstrap = (): void => {
 
     //sub-app-routing-module
     app.use("/auth", authController)
+    app.use("/user", userController)
 
 
 

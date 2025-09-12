@@ -1,34 +1,95 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { HydratedDocument, model, models, Schema, Types } from 'mongoose';
 
-interface IUser extends Document {
 
-    fullName: string;
+export enum GenderEnum {
+    male = "male",
+    female = "female"
+}
+
+
+export enum RoleEnum {
+    admin = "admin",
+    user = "user"
+}
+
+
+
+export interface IUser {
+    _id: Types.ObjectId;
+
+    firstName: string;
+    lastName: string;
+    username?: string;
+
     email: string;
-    password: string;
-    phone?: number;
-    gender?: 'male' | 'female';
-
     confirmEmail?: Date;
     confirmEmailOtp?: string | undefined;
     confirmEmailExpiry?: Date | undefined;
     confirmEmailAt?: Date | undefined;
 
 
+    password: string;
+    resetPasswordOtp?: string;
+    changeCredentialsTime?: Date;
+
+    phone?: number;
+    address?: string;
+
+    gender: GenderEnum;
+    role: RoleEnum;
+
+
+    createdAt?: Date;
+    updateAt?: Date;
+
+
+
 }
 
-const UserSchema: Schema<IUser> = new mongoose.Schema({
-    fullName: { type: String, required: true },
+const UserSchema = new Schema<IUser>({
+
+    firstName: { type: String, required: true, minLength: 2, maxLength: 25 },
+    lastName: { type: String, required: true, minLength: 2, maxLength: 25 },
+
     email: { type: String, required: true, unique: true },
+    confirmEmail: { type: Date },
+    confirmEmailOtp: { type: String, required: false },
+    confirmEmailExpiry: { type: Date },
+    confirmEmailAt: { type: Date },
+
+
     password: { type: String, required: true },
+    resetPasswordOtp: { type: String },
+    changeCredentialsTime: { type: Date },
+
     phone: { type: Number },
-    gender: { type: String, enum: ['male', 'female'] },
+    address: { type: String },
 
-    confirmEmail: { type: Boolean, default: false },        // هل البريد متأكد؟
-    confirmEmailOtp: { type: String },                      // كود التأكيد (OTP)
-    confirmEmailExpiry: { type: Date },                     // وقت انتهاء صلاحية الكود
-    confirmEmailAt: { type: Date },                         // وقت ما تم التأكيد فعليًا
-});
+    gender: { type: String, enum: GenderEnum },
+    role: { type: String, enum: RoleEnum },
 
-const UserModel = mongoose.model<IUser>('User', UserSchema)
 
-export default UserModel
+
+
+},
+
+    {
+        timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: false }
+    }
+);
+
+UserSchema.virtual("username").set(function (value: string) {
+    const [firstName, lastName] = value.split(" ") || [];
+    this.set({ firstName, lastName });
+}).get(function () {
+    return this.firstName + " " + this.lastName;
+})
+
+
+
+
+export const UserModel = models.User || model<IUser>('User', UserSchema)
+
+export type HUserDocument =HydratedDocument<IUser>

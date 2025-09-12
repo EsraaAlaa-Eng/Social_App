@@ -15,34 +15,34 @@ export const validation = (schema: SchemaType) => {
                 message: string;
                 path: string | number | symbol | undefined;
             }>;
-     }>=[];
-    
-     for (const key of Object.keys(schema) as keyReqType[]) {
-        if(!schema[key]) continue;
+        }> = [];
 
-        const validationResult =schema[key].safeParse(req[key]);
+        for (const key of Object.keys(schema) as keyReqType[]) {
+            if (!schema[key]) continue;
 
-        if(!validationResult.success){
-            const errors=validationResult.error as ZodError;
+            const validationResult = schema[key].safeParse(req[key]);
 
-            validationErrors.push({
-                key,
-                issues:errors.issues.map((issue)=>{
-                    return {message:issue.message,path:issue.path[0]}
-                }),
+            if (!validationResult.success) {
+                const errors = validationResult.error as ZodError;
+
+                validationErrors.push({
+                    key,
+                    issues: errors.issues.map((issue) => {
+                        return { message: issue.message, path: issue.path[0] }
+                    }),
+                });
+            }
+
+
+        }
+
+        if (validationErrors.length) {
+            throw new BadRequestException("validation Error", {
+                validationErrors,
             });
         }
- 
-        
-     }
 
-     if(validationErrors.length){
-        throw new BadRequestException("validation Error",{
-            validationErrors,
-        });
-     }
-
-     return next() as unknown as NextFunction;
+        return next() as unknown as NextFunction;
 
     };
 };
@@ -50,13 +50,13 @@ export const validation = (schema: SchemaType) => {
 
 
 
-export const generalFields={
+export const generalFields = {
 
-        fullName: z.string().min(2).max(20),
-        email: z.email(),
-        password: z.string().regex(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/),
-        confirmPassword: z.string(),
-    }
+    username: z.string().min(2).max(20),
+    email: z.email(),
+    password: z.string().regex(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/),
+    confirmPassword: z.string(),
+}
 
 
 
