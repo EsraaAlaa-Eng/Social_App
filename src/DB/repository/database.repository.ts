@@ -1,4 +1,4 @@
-import { FlattenMaps, MongooseUpdateQueryOptions, QueryOptions, QueryWithHelpers, UpdateQuery, UpdateQueryKnownOnly, UpdateWriteOpResult } from "mongoose";
+import { FlattenMaps, MongooseUpdateQueryOptions, QueryOptions, UpdateQuery ,UpdateWriteOpResult } from "mongoose";
 import { CreateOptions, HydratedDocument, Model, ProjectionType, RootFilterQuery } from "mongoose";
 
 
