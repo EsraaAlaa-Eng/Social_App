@@ -13,8 +13,23 @@ interface IEmail extends Mail.Options {
 emailEvent.on("confirmEmail", async (data: IEmail) => {
     try {
 
+        data.subject = "Confirm-Email"
         console.log("DEBUG emailEvent data:", data);
         data.html = verifyEmail({ otp: data.otp, title: "Email confirmation" })
+
+        await sendEmail(data)
+
+    } catch (error) {
+        console.log(`fail to send email`, error);
+    }
+
+})
+emailEvent.on("resetPassword", async (data: IEmail) => {
+    try {
+
+        data.subject = "Reset-Account-Password"
+        console.log("DEBUG emailEvent data:", data);
+        data.html = verifyEmail({ otp: data.otp, title: "Reset Code" })
 
         await sendEmail(data)
 

@@ -1,12 +1,14 @@
 
 import { Request, Response } from "express"
 import { ILogoutDTO } from "./user.dto";
-import { LogoutEnum } from "../../utils/security/token.security";
+import { createLoginCredentials, createRevokeToken, LogoutEnum } from "../../utils/security/token.security";
 import { UpdateQuery } from "mongoose";
-import { IUser, UserModel } from "../../DB/models/user.model";
+import { HUserDocument, IUser, UserModel } from "../../DB/models/user.model";
 import { UserRepository } from "../../DB/repository/user.repository";
 import { TokenModel } from "../../DB/models/token.model";
 import { TokenRepository } from "../../DB/repository/token.repository";
+import { JwtPayload } from "jsonwebtoken";
+
 
 
 
@@ -41,15 +43,16 @@ class UserService {
                 break;
 
             default:
-                await this.tokenModel.create({
-                    data: [{
-                        jti: req.decoded?.jti as string,
-                        expireIn: req.decoded?.iat as number + Number(process.env.REFRESH_TOKEN_EXPIRES_IN),
-                        userId: req.decoded?._id
+                await createRevokeToken(req.decoded as JwtPayload)
+                // await this.tokenModel.create({  //creat revokeToken
+                //     data: [{
+                //         jti: req.decoded?.jti as string,
+                //         expireIn: req.decoded?.iat as number + Number(process.env.REFRESH_TOKEN_EXPIRES_IN),
+                //         userId: req.decoded?._id
 
-                    }]
-                })
-                statusCode=201;
+                //     }]
+                // })
+                // statusCode = 201;
                 break;
         }
 
@@ -61,6 +64,15 @@ class UserService {
             message: "Done",
         });
 
+    }
+
+
+
+    refreshToken = async (req: Request, res: Response,): Promise<Response> => {
+        const credentials = await createLoginCredentials(req.user as HUserDocument)    // why HUserDocument??
+        await createRevokeToken(req.decoded as JwtPayload)
+
+        return res.status(201).json({ message: "Done", date: { credentials } })
     }
 
 

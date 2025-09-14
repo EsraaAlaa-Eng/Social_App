@@ -5,7 +5,8 @@ import { HUserDocument, RoleEnum, UserModel } from "../../DB/models/user.model";
 import { BadRequestException, UnauthorizedException } from "../response/error.response";
 import { UserRepository } from "../../DB/repository/user.repository";
 import { TokenRepository } from "../../DB/repository/token.repository";
-import { TokenModel } from "../../DB/models/token.model";
+import { HTokenDocument, TokenModel } from "../../DB/models/token.model";
+import { decode } from "punycode";
 
 
 export enum signatureLevelEnum {
@@ -118,7 +119,7 @@ export const createLoginCredentials = async (user: HUserDocument) => {
     const refresh_token = await generateToken({
         payload: { _id: user._id },
         secret: signatures.refresh_signature,
-        options: { expiresIn: Number(process.env.REFRESH_TOKEN_EXPIRES_IN),jwtid }
+        options: { expiresIn: Number(process.env.REFRESH_TOKEN_EXPIRES_IN), jwtid }
 
     });
 
@@ -170,4 +171,23 @@ export const decodeToken = async ({
     return { user, decoded }
 }
 
+
+
+export const createRevokeToken = async (decoded: JwtPayload): Promise<HTokenDocument> => {
+    const tokenModel = new TokenRepository(TokenModel);
+
+    const [result] = (await tokenModel.create({
+        data: [{
+            jti: decoded.jti as string,
+            expireIn: decoded.iat as number + Number(process.env.REFRESH_TOKEN_EXPIRES_IN),
+            userId: decoded._id
+
+        }]
+    })) || []
+    if (!result) {
+        throw new BadRequestException("fail to revoke this token")
+
+    }
+    return result;
+}
 

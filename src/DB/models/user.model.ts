@@ -12,6 +12,12 @@ export enum RoleEnum {
     user = "user"
 }
 
+export enum ProviderEnum {
+    GOOGLE = "GOOGLE",
+    SYSTEM = "SYSTEM"
+}
+
+
 
 
 export interface IUser {
@@ -22,10 +28,9 @@ export interface IUser {
     username?: string;
 
     email: string;
-    confirmEmail?: Date;
     confirmEmailOtp?: string | undefined;
     confirmEmailExpiry?: Date | undefined;
-    confirmEmailAt?: Date | undefined;
+    confirmedAt?: Date | undefined;
 
 
     password: string;
@@ -35,8 +40,12 @@ export interface IUser {
     phone?: number;
     address?: string;
 
+    ProfileImage?: string;
+    CoverImage?: string[];
+
     gender: GenderEnum;
     role: RoleEnum;
+    provider: ProviderEnum;
 
 
     createdAt?: Date;
@@ -52,21 +61,29 @@ const UserSchema = new Schema<IUser>({
     lastName: { type: String, required: true, minLength: 2, maxLength: 25 },
 
     email: { type: String, required: true, unique: true },
-    confirmEmail: { type: Date },
     confirmEmailOtp: { type: String, required: false },
     confirmEmailExpiry: { type: Date },
-    confirmEmailAt: { type: Date },
+    confirmedAt: { type: Date },
 
 
-    password: { type: String, required: true },
+    password: {
+        type: String,
+        required: function () {
+            return this.provider === ProviderEnum.GOOGLE ? false : true
+        },
+    },
     resetPasswordOtp: { type: String },
     changeCredentialsTime: { type: Date },
 
     phone: { type: Number },
     address: { type: String },
 
-    gender: { type: String, enum: GenderEnum },
-    role: { type: String, enum: RoleEnum },
+    ProfileImage: { type: String },
+    CoverImage: [String],
+
+    gender: { type: String, enum: GenderEnum, default: GenderEnum.male },
+    role: { type: String, enum: RoleEnum, default: RoleEnum.user },
+    provider: { type: String, enum: ProviderEnum, default: ProviderEnum.GOOGLE },
 
 
 
@@ -92,4 +109,4 @@ UserSchema.virtual("username").set(function (value: string) {
 
 export const UserModel = models.User || model<IUser>('User', UserSchema)
 
-export type HUserDocument =HydratedDocument<IUser>
+export type HUserDocument = HydratedDocument<IUser>

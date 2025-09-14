@@ -56,6 +56,8 @@ export const generalFields = {
     email: z.email(),
     password: z.string().regex(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/),
     confirmPassword: z.string(),
+    otp: z.string(),
+
 }
 
 

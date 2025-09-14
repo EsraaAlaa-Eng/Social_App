@@ -22,7 +22,6 @@ export const sendEmail = async (data: Mail.Options): Promise<void> => {
     const info = await transporter.sendMail({
         ...data,
         from: `"App ${process.env.APPLICATION_NAME} 🍀 "<${process.env.EMAIL as string} `,
-        subject: data.subject || "confirm your Email"
 
     });
 
