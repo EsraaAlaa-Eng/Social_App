@@ -5,9 +5,11 @@ import { BadRequestException, ConflictException, NotFoundException } from "../..
 import { generateOtp } from '../../utils/generateOtp';
 import { UserRepository } from "../../DB/repository/user.repository";
 import { compareHash, generateHash } from "../../utils/security/hash.security";
-import { emailEvent } from "../../utils/event/email.event";
+import { emailEvent } from "../../utils/email/email.event";
 import { createLoginCredentials } from "../../utils/security/token.security";
 import { OAuth2Client, TokenPayload } from 'google-auth-library';
+import { ILoginResponse } from "./auth.entities";
+import { successResponse } from "../../utils/response/success.response";
 
 
 
@@ -73,7 +75,7 @@ class AuthenticationService {
         }
 
         const credentials = await createLoginCredentials(newUser)
-        return res.status(201).json({ message: "Done", data: { credentials } })
+        return successResponse<ILoginResponse>({ res, statuscode: 201, data: { credentials } })
     };
 
 
@@ -96,7 +98,7 @@ class AuthenticationService {
         }
 
         const credentials = await createLoginCredentials(user)
-        return res.status(201).json({ message: "Done", data: { credentials } })
+        return successResponse<ILoginResponse>({ res, data: { credentials } })
     }
 
 
@@ -140,8 +142,14 @@ class AuthenticationService {
             otp
         });
 
-        return res.status(201).json({ message: "Signup successful", data: { user } })
+        return successResponse({ res, statuscode: 201, message: "Signup successfully", data: { user } })
+
     }
+
+
+
+
+
 
 
     confirmEmail = async (req: Request, res: Response): Promise<Response> => {
@@ -182,8 +190,7 @@ class AuthenticationService {
 
 
 
-        return res.status(200).json({ message: "Email confirmed successfully" });
-
+        return successResponse({ res, message: "Email confirmed successfully" })
     }
 
 
@@ -213,9 +220,8 @@ class AuthenticationService {
 
 
 
-        return res.status(200).json({
-            message: "Done", data: { credentials },
-        });
+        return successResponse<ILoginResponse>({ res, data: { credentials } })
+
     };
 
 
@@ -257,7 +263,7 @@ class AuthenticationService {
 
         emailEvent.emit("resetPassword", { to: email, otp })
 
-        return res.json({ message: "done" })
+        return successResponse({ res })
     }
 
 
@@ -283,7 +289,7 @@ class AuthenticationService {
             throw new ConflictException("invalid otp")
         }
 
-        return res.json({ message: "done" })
+        return successResponse({ res })
     }
 
 
@@ -319,11 +325,11 @@ class AuthenticationService {
             }
         })
 
-        if(!result.matchedCount){
+        if (!result.matchedCount) {
             throw new BadRequestException("Fail to reset account  password ")
         }
 
-        return res.json({ message: "done" })
+        return successResponse({ res })
     }
 
 

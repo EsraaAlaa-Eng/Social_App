@@ -14,9 +14,15 @@ import { rateLimit } from "express-rate-limit";
 
 //import module routing
 import authController from "./modules/auth/auth.controller"
-import { globalErrorHandling } from './utils/response/error.response';
+import { BadRequestException, globalErrorHandling } from './utils/response/error.response';
 import connectDB from './DB/connection/connection.db';
 import userController from './modules/user/user.controller';
+import { deleteFolderByPrefix, getFile } from './utils/multer/s3.config';
+
+
+import { promisify } from 'node:util';
+import { pipeline } from 'node:stream';
+const createS3WriteStreamPipe = promisify(pipeline)
 
 
 
@@ -36,7 +42,7 @@ const bootstrap = async (): Promise<void> => {
     // Connect Database
     await connectDB();
 
-    app.use(express.json());
+
 
 
     // global application middleware cors ,helmet ,json format,rate limit
@@ -56,6 +62,47 @@ const bootstrap = async (): Promise<void> => {
     //sub-app-routing-module
     app.use("/auth", authController)
     app.use("/user", userController)
+
+
+    // test
+    app.get("/test/*key", async (req: Request, res: Response) => {
+        // let key = req.params.key as unknown as string[]
+        // let path = key.join("/")
+        // const { Key } = req.query as { Key: string };
+        // // const result = await deleteFile({ Key })
+
+
+        // const result = await deleteFiles({
+        //     urls: [
+        //         path],
+        //     Quiet: true,
+        // })
+
+
+        await deleteFolderByPrefix({ path: `users/` });
+
+        return res.json({ message: "Done", data: {} })
+    })
+
+
+    // getAsset with presignedUrl 
+    app.get("/upload/*path", async (req: Request, res: Response) => {
+        const { path } = req.params as unknown as { path: string[] }
+        const Key = path.join("/")
+        const s3Response = await getFile({ Key })
+        console.log(s3Response);
+        if (!s3Response?.Body) {
+            throw new BadRequestException("missing resource key");
+        }
+        res.setHeader(
+            "Content-Type",
+            `${s3Response.ContentType || "application/octet-stream"} `
+        );
+
+        return await createS3WriteStreamPipe(s3Response.Body as NodeJS.ReadableStream, res);
+    });
+
+
 
 
 
