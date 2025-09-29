@@ -96,7 +96,7 @@ class UserService {
         }
 
 
-        return successResponse<ICoverImageResponse>({ res, data: { user } })
+        return successResponse<IUserResponse>({ res, data: { user } })
 
     };
 
@@ -243,7 +243,7 @@ class UserService {
     }
 
 
-    
+
 }
 
 export default new UserService()
